@@ -3,7 +3,7 @@ require 'bundler'
 Bundler.require
 
 require 'active_record'
-require 'mathematician'
+require_relative 'mathematician'
 require 'socket'
 
 Figaro.application = Figaro::Application.new(environment: "production", path: "application.yml")
@@ -110,7 +110,7 @@ class RawStorer
             metric = sensor
             value = feed[sensor]
             value = method(sensor).call( (Float(value) rescue value), device.kit_version)
-            self.commands << "put #{metric} #{ts} #{value} device_id=#{device.id} identifier=sck#{device.kit_version}"
+            self.commands << "put #{metric} #{ts} #{value.round(4)} device_id=#{device.id} identifier=sck#{device.kit_version}"
           end
         rescue Exception => e
           raise "FAIL"
@@ -127,6 +127,7 @@ Parallel.each(Device.order(id: :desc)) do |device|
   begin
     File.open("imports/#{device.id}.txt", 'w') do |file|
       file.write RawStorer.new(device).commands.join("\n")
+      file.write "\n"
     end
     print [device.id,"OK\n".green].join("\t")
   rescue Exception => e
