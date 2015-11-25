@@ -93,7 +93,7 @@ class RawStorer
 
   def initialize device
     keys = %w(temp bat co hum light nets no2 noise panel)
-    batch_size = ENV['batch_size'] || 8000
+    batch_size = (ENV['batch_size'] || 8000).to_i
     count = Feed.where(device_id: device.id).count
     count = count/batch_size
     count += 1 if count%batch_size > 0
